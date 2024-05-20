@@ -2,14 +2,13 @@ from polynomial_trajectory_planner import Polynomial
 from polynomial_trajectory_planner import Sampler
 from environment import Car
 from environment import Lane
-from environment import Env
 import random
 import numpy as np
 import matplotlib.pyplot as plt
 
 # initialize cars
 
-num_of_surrounding_car = 1
+num_of_surrounding_car = 1                          
 
 surrounding_car_list = []
 for _ in range(num_of_surrounding_car):
@@ -27,11 +26,8 @@ ego_car.v_x = 6
 ego_car.pos_x = 0
 ego_car.pos_y = -4.0/2.0
 
-# initial Env
-env = Env(ego_car,surrounding_car_list)
-
 # initialize poly for surrounding car and ego car
-poly_for_surrounding_car_list = []
+poly_for_surrounding_car_list = [] 
 for _ in range(num_of_surrounding_car):
     poly_for_surrounding_car_list.append(Polynomial(3))  # sample time T = 3
 

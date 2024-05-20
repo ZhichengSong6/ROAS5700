@@ -3,6 +3,8 @@ import math
 class Car:
     def __init__(self,car_type, time_step):
         self.type = car_type        # 0: ego vehicle; 1: surrounding
+        self.car_width = 1.0
+        self.car_legnth = 4.7
         self.pos_x = 0
         self.pos_y = 0
         self.v_x = 0
