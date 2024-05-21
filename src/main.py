@@ -44,7 +44,7 @@ sampler = Sampler(300, 1.5 * ego_car.r, lane.line_width * lane.num_of_lane - ego
 
 while True:
     # sample for 20 trajectories for each time
-    kNumSample = 4
+    kNumSample = 1
     kSamplePoints = 10
     lc_times = []
     kMinLcTime = 3.0
@@ -61,5 +61,5 @@ while True:
         poly_for_ego_car = Polynomial(lc_time)
         ego_plan_traj = poly_for_ego_car.getTrajectory(init_state, end_state)
         poly_for_ego_car.plotPath(ego_plan_traj, init_state, end_state, lane.line_width, 35, car.car_width, car.car_legnth)
-
+        print('ego_plan_traj: ', ego_plan_traj)
     break

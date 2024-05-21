@@ -37,7 +37,7 @@ class Polynomial:
         self.trajectory = []
         self.fitness = 0        #
 
-        self.dt = 0.05
+        self.dt = 0.02
         self.t0 = 0
         self.t1 = self.T
         self.A = None
@@ -133,18 +133,18 @@ class Polynomial:
         plt.plot(path[:, 0], path[:, 1], 'r--')
         ## 分析速度
 
-        # 纵向速度
-        plt.figure(3)
-        plt.plot(t, path[:, 2], 'k')
-        plt.xlabel('time/s ')
-        plt.ylabel('m/s ')
-        plt.title("longi vel")
-
-        # 横向速度
-        plt.figure(2)
-        plt.plot(t, path[:, 3], 'k')
-        plt.xlabel('time/s ')
-        plt.ylabel('m/s ')
-        plt.title("lat vel")
+        # # 纵向速度
+        # plt.figure(3)
+        # plt.plot(t, path[:, 2], 'k')
+        # plt.xlabel('time/s ')
+        # plt.ylabel('m/s ')
+        # plt.title("longi vel")
+        #
+        # # 横向速度
+        # plt.figure(2)
+        # plt.plot(t, path[:, 3], 'k')
+        # plt.xlabel('time/s ')
+        # plt.ylabel('m/s ')
+        # plt.title("lat vel")
 
         plt.show()
