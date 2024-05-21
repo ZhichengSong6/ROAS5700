@@ -1,7 +1,7 @@
 import math
 
 class Car:
-    def __init__(self,car_type, time_step=0.02):
+    def __init__(self,car_type, time_step=0.1):
         self.type = car_type        # 0: ego vehicle; 1: surrounding
         self.car_width = 1.0
         self.car_legnth = 4.7

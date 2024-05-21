@@ -37,7 +37,7 @@ class Polynomial:
         self.trajectory = []
         self.fitness = 0        #
 
-        self.dt = 0.02
+        self.dt = 0.1
         self.t0 = 0
         self.t1 = self.T
         self.A = None
