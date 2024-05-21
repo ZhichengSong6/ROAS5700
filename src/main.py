@@ -6,6 +6,9 @@ from environment import Env
 import random
 import numpy as np
 import matplotlib.pyplot as plt
+import math
+from model import DynamicsModel
+import numpy as np
 
 # initialize cars
 
@@ -62,4 +65,27 @@ while True:
         ego_plan_traj = poly_for_ego_car.getTrajectory(init_state, end_state)
         poly_for_ego_car.plotPath(ego_plan_traj, init_state, end_state, lane.line_width, 35, car.car_width, car.car_legnth)
         print('ego_plan_traj: ', ego_plan_traj)
+        # test 
+        control_traj = np.array(np.zeros((len(ego_plan_traj), 6)))
+        control_traj[0][2] = 0
+        control_traj[0][5] = 0
+        control_traj[len(ego_plan_traj) - 1][3] = ego_plan_traj[len(ego_plan_traj) - 1][2]
+        control_traj[len(ego_plan_traj) - 1][4] = ego_plan_traj[len(ego_plan_traj) - 1][3]
+        control_traj[len(ego_plan_traj) - 1][0] = ego_plan_traj[len(ego_plan_traj) - 1][0]
+        control_traj[len(ego_plan_traj) - 1][1] = ego_plan_traj[len(ego_plan_traj) - 1][1]
+        for i in range(len(ego_plan_traj)-1):
+            control_traj[i][0] = ego_plan_traj[i][0]
+            control_traj[i][1] = ego_plan_traj[i][1]
+            control_traj[i+1][2] = math.atan2((ego_plan_traj[i+1][3] - ego_plan_traj[i][3])/0.1, (ego_plan_traj[i+1][2]-ego_plan_traj[i][2])/0.1)
+            control_traj[i][3] = ego_plan_traj[i][2]
+            control_traj[i][4] = ego_plan_traj[i][3]
+            control_traj[i+1][5] = (ego_plan_traj[i+1][2] - ego_plan_traj[i][2])/0.1
+        print('control_traj: ', control_traj)
+        Q = np.eye(6)
+        Q[3][3] = 5
+        Q[5][5]=0
+        R = np.eye(2)
+        R[0][0] = 10
+        model = DynamicsModel(10, 20, Q, R, control_traj)
+        model.solve(control_traj[0])
     break

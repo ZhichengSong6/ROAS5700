@@ -29,8 +29,8 @@ class DynamicsModel:
         self.N = N                               # number of control intervals
         self.Q = Q
         self.R = R
-        self.x_ref = x_ref
-        self.x_ref_curr = x_ref[0]
+        self.x_ref_symb = ca.MX.sym('x_ref', 6)
+        self.x_ref = x_ref[0:20].ravel()
 
     def getModelEquation(self):
         return ca.vertcat(
@@ -43,36 +43,53 @@ class DynamicsModel:
         )
     
     def getObjectiveFunction(self):
-        return (self.x.T - self.x_ref_curr.T)* self.Q * (self.x - self.x_ref_curr) + self.u.T * self.R * self.u
+        return (self.x.T - self.x_ref_symb.T) @ self.Q @ (self.x - self.x_ref_symb) + self.u.T @ self.R @ self.u
     
     def solve(self, initial_state):
         # formulate MPC Problem
-        f = ca.Function("FD",[self.x, self.u],[self.getModelEquation(), self.getObjectiveFunction], ['state', 'control_input'],["next_step_state", "cost"])
+        f = ca.Function('FD',[self.x, self.u, self.x_ref_symb],[self.getModelEquation(), self.getObjectiveFunction()], ['state', 'control_input', 'ref_state'],['next_step_state', 'cost'])
         Xk = ca.MX(initial_state)
         w = []
         w0 = []
         lbw = []
         ubw = []
+        p = []
         J = 0
-        # fk = f(state=[0,0,0,0,0,0],control_input=[1,0])
-        # print(fk['next_step_state'])
 
         for k in range(self.N):
-            Uk = ca.MX.sym('U_' + str(k))
+            Uk = ca.MX.sym('U_' + str(k), 2)
             w += [Uk]
             lbw += [-3, -0.6]
             ubw += [1.5, 0.6]
             w0 += [0,0]
+            pk = ca.MX.sym('p_' + str(k), 6)
+            p += [pk]
         
             # Integrate till the end of the interval
-            fk = f(state=Xk,control_input=Uk)
+            fk = f(state=Xk,control_input=Uk, ref_state=pk)
             Xk = fk['next_step_state']
             J = J + fk['cost']
-
-            self.x_ref_curr = self.x_ref[k+1]
+            
         
         # create NLP solver
-        nlp = {'f': J, 'x': ca.vertcat(*w), 'p': ca.vertcat(self.x), 'g': ca.vertcat()}
+        nlp = {'f': J, 'x': ca.vertcat(*w), 'p': ca.vertcat(self.x), 'g': ca.vertcat(), 'p': ca.vertcat(*p)}
         solver = ca.nlpsol('solver', 'ipopt', nlp)
         # solve the NLP
-        sol = solver(x0=w0, lbx=lbw, ubx=ubw, p=initial_state)
+        sol = solver(x0=w0, lbx=lbw, ubx=ubw, p=self.x_ref)
+
+        w_opt = sol['x']
+
+        u_opt = w_opt
+        x_opt = [initial_state]
+        print(x_opt[-1])
+
+        for k in range(self.N):
+            Fk = f(state=x_opt[-1], control_input=u_opt[k])
+            x_opt += [Fk['next_step_state'].full()]
+        x1_opt = ca.vcat([r[0] for r in x_opt])
+        x2_opt = ca.vcat([r[1] for r in x_opt])
+        x4_opt = ca.vcat([r[3] for r in x_opt])
+
+        # print(x1_opt)
+        # print(x4_opt)
+        # print(u_opt)
