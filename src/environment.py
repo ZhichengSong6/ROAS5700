@@ -1,7 +1,7 @@
 import math
 
 class Car:
-    def __init__(self,car_type, time_step=0.1):
+    def __init__(self,car_type, time_step=0.01):
         self.type = car_type        # 0: ego vehicle; 1: surrounding
         self.car_width = 1.0
         self.car_legnth = 4.7
@@ -26,7 +26,14 @@ class Car:
         self.pos_y += self.v_y * self.dt
         self.v_x += self.a_x * self.dt
         self.v_y += self.a_y * self.dt
-        self.phi += self.omega * self.dt 
+        self.phi += self.omega * self.dt
+
+    def step_test(self, u_ax, u_ay):
+        self.pos_x += self.v_x * self.dt
+        self.pos_y += self.v_y * self.dt
+        self.v_x += u_ax * self.dt
+        self.v_y += u_ay * self.dt
+        # self.phi += self.omega * self.dt
 
     def updateTrajectoryPhi(self):
         self.traj_phi[0] = self.phi

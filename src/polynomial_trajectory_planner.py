@@ -25,7 +25,7 @@ class Sampler:
         return end_position, end_velocity
         
 class Polynomial:
-    def __init__(self, end_time):
+    def __init__(self, duration, begin_time = 0.0):
         self.motionTime = 0
         self.a0 = 0
         self.a1 = 0
@@ -33,13 +33,12 @@ class Polynomial:
         self.a3 = 0
         self.a4 = 0
         self.a5 = 0             # Quintic Polynomials
-        self.T = end_time
         self.trajectory = []
         self.fitness = 0        #
 
         self.dt = 0.1
-        self.t0 = 0
-        self.t1 = self.T
+        self.t0 = begin_time
+        self.t1 = begin_time + duration
         self.A = None
         self.B = None
 
@@ -96,7 +95,26 @@ class Polynomial:
 
         return path
 
-    def plotPath(self, path, init_state, end_state, lane_width, line_length, car_width, car_length):
+    def getDesiredState(self, time):
+        if self.A is None or self.B is None:
+            return None
+        else:
+            desired_state = np.zeros(6)
+            # x
+            desired_state[0] = np.array([time ** 5, time ** 4, time ** 3, time ** 2, time, 1]) @ self.A
+            # y
+            desired_state[1] = np.array([time ** 5, time ** 4, time ** 3, time ** 2, time, 1]) @ self.B
+            # vx
+            desired_state[2] = np.array([5 * time ** 4, 4 * time ** 3, 3 * time ** 2, 2 * time, 1, 0]) @ self.A
+            # vy
+            desired_state[3] = np.array([5 * time ** 4, 4 * time ** 3, 3 * time ** 2, 2 * time, 1, 0]) @ self.B
+            # vx
+            desired_state[4] = np.array([4 * 5 * time ** 3, 3 * 4 * time ** 2, 2 * 3 * time, 2 , 1, 0]) @ self.A
+            # vy
+            desired_state[5] = np.array([4 * 5 * time ** 3, 3 * 4 * time ** 2, 2 * 3 * time, 2 , 1, 0]) @ self.B
+            return desired_state
+
+    def plotPath(self, path, current_state, end_state, lane_width, line_length, car_width, car_length):
         # params
         d = lane_width
         len_line = line_length
@@ -113,7 +131,7 @@ class Polynomial:
         plt.fill(GreyZone[:, 0], GreyZone[:, 1], np.array([0.5, 0.5, 0.5]))
 
         # 画小车
-        plt.fill(np.array([init_state[0], init_state[0], init_state[0] + L, init_state[0] + L]),
+        plt.fill(np.array([current_state[0], current_state[0], current_state[0] + L, current_state[0] + L]),
                  np.array([- d / 2 - W / 2, - d / 2 + W / 2, - d / 2 + W / 2, - d / 2 - W / 2]), 'b')
         plt.fill(np.array([end_state[0], end_state[0], end_state[0] - L, end_state[0] - L]),
                  np.array([ d / 2 - W / 2,  d / 2 + W / 2,  d / 2 + W / 2,  d / 2 - W / 2]), 'y')
