@@ -30,6 +30,7 @@ class Car:
         self.m = 1412               # mass of the vehicle
         self.Iz = 1536.7            # polar moment of inertia
         self.Lk = self.lf * self.kf - self.lr * self.kr
+        self.desired_speed = 10.0
 
     def step(self, control_input):
         pos_x = self.pos_x + self.dt * (self.v_x * np.cos(self.phi) - self.v_y * np.sin(self.phi))
@@ -77,9 +78,25 @@ class Lane:
         return self.num_of_lane * self.line_width
 
 class Env:
-    def __init__(self, ego_vehicle, surrounding_vehicle_list):
+    def __init__(self, ego_vehicle, surrounding_vehicle_list, lane, dt_plan, kSimTime):
         self.ego_vehicle = ego_vehicle
-        self.surrounding_vehicle_list = surrounding_vehicle_list
+        self.dt_plan = dt_plan
+        self.prediction_time = kSimTime
+        self.surrounding_vehicle_list = self.addPredictionToSurroundingVehicleList(surrounding_vehicle_list)
+        self.lane = lane
+
+    def addPredictionToSurroundingVehicleList(self, surrounding_vehicle_list):
+        for car in surrounding_vehicle_list:
+            t = 0.0
+            pred_x = car.pos_x
+            pred_y = car.pos_y
+            while t <= self.prediction_time:
+                car.traj_x.append(pred_x)
+                car.traj_y.append(pred_y)
+                pred_x += car.v_x * self.dt_plan
+                pred_y += car.v_y * self.dt_plan
+                t += self.dt_plan
+        return surrounding_vehicle_list
 
     def collisionCheckForAllCar(self):
         for car in self.surrounding_vehicle_list:
@@ -89,11 +106,21 @@ class Env:
         return False                    # no collision
 
     def collisionCheck(self, car1, car2, index):
-        if self.eulerDistance(car1.center1_pos[index], car2.center1_pos[index]) <= self.r or self.eulerDistance(car1.center1_pos[index], car2.center2_pos[index]) <= self.r or\
-            self.eulerDistance(car1.center2_pos[index], car2.center1_pos[index]) <= self.r or self.eulerDistance(car1.center2_pos[index], car2.center2_pos[index]) <= self.r:
+        if self.eulerDistance(car1.center1_pos[index], car2.center1_pos[index]) <= self.ego_vehicle.r or self.eulerDistance(car1.center1_pos[index], car2.center2_pos[index]) <= self.ego_vehicle.r or\
+            self.eulerDistance(car1.center2_pos[index], car2.center1_pos[index]) <= self.ego_vehicle.r or self.eulerDistance(car1.center2_pos[index], car2.center2_pos[index]) <= self.ego_vehicle.r:
             return True
         else:
             return False
 
     def eulerDistance(self, point1, point2):
         return math.sqrt((point1[0] - point2[0]) ** 2 +(point1[1] - point2[1]) ** 2)
+
+    def pointCollisionCheck(self, car1_center1_pos, car2_center1_pos, car1_center2_pos, car2_center2_pos):
+        if self.eulerDistance(car1_center1_pos, car2_center1_pos) <= self.ego_vehicle.r or self.eulerDistance(car1_center1_pos, car2_center2_pos) <= self.ego_vehicle.r or\
+            self.eulerDistance(car1_center2_pos, car2_center1_pos) <= self.ego_vehicle.r or self.eulerDistance(car1_center2_pos, car2_center2_pos) <= self.ego_vehicle.r:
+            min_dist = min(self.eulerDistance(car1_center1_pos, car2_center1_pos), self.eulerDistance(car1_center1_pos, car2_center2_pos))
+            min_dist = min(min_dist, self.eulerDistance(car1_center2_pos, car2_center1_pos))
+            min_dist = min(min_dist, self.eulerDistance(car1_center2_pos, car2_center2_pos))
+            return True, min_dist - self.ego_vehicle.r
+        else:
+            return False, 0.0
