@@ -1,12 +1,15 @@
 import math
+import numpy as np
 
 class Car:
-    def __init__(self,car_type, time_step=0.01):
+    def __init__(self,car_type, time_step=0.1):
         self.type = car_type        # 0: ego vehicle; 1: surrounding
         self.car_width = 1.0
         self.car_legnth = 4.7
         self.pos_x = 0
         self.pos_y = 0
+        self.x_dot = 0
+        self.y_dot = 0
         self.v_x = 0
         self.v_y = 0
         self.a_x = 0
@@ -20,13 +23,31 @@ class Car:
         self.center2_pos = []
         self.dt = time_step
         self.r = 1.2
+        self.kf = -128916           # cornering stiffness of the front wheels
+        self.kr = -85944            # cornering stiffness of the rear wheels
+        self.lf = 1.06              # distance from COM to the front axle
+        self.lr = 1.85              # distance from COM to rear axle
+        self.m = 1412               # mass of the vehicle
+        self.Iz = 1536.7            # polar moment of inertia
+        self.Lk = self.lf * self.kf - self.lr * self.kr
 
-    def step(self):
-        self.pos_x += self.v_x * self.dt
-        self.pos_y += self.v_y * self.dt
-        self.v_x += self.a_x * self.dt
-        self.v_y += self.a_y * self.dt
-        self.phi += self.omega * self.dt
+    def step(self, control_input):
+        pos_x = self.pos_x + self.dt * (self.v_x * np.cos(self.phi) - self.v_y * np.sin(self.phi))
+        pos_y = self.pos_y + self.dt * (self.v_y * np.cos(self.phi) + self.v_x * np.sin(self.phi))
+        phi = self.phi + self.dt * self.omega
+        v_x = self.v_x + self.dt * control_input[0]
+        v_y = (self.m * self.v_x * self.v_y + self.dt * (self.Lk * self.omega - self.kf * control_input[1] * self.v_x - self.m * self.v_x * self.v_x * self.omega)) / (self.m * self.v_x - self.dt * (self.kr + self.kf))
+        omega = (self.Iz * self.v_x * self.omega + self.dt * (self.Lk * self.v_y - self.lf * self.kf * control_input[1] * self.v_x)) / (self.Iz * self.v_x - self.dt * (self.lf * self.lf * self.kf + self.lr * self.lr * self.kr))
+        self.pos_x = pos_x
+        self.pos_y = pos_y
+        self.phi = phi
+        self.v_x = v_x
+        self.v_y = v_y
+        self.x_dot = self.v_x * math.cos(self.phi) - self.v_y * math.sin(self.phi)
+        self.y_dot = self.v_x * math.sin(self.phi) + self.v_y * math.cos(self.phi)
+        self.omega = omega
+        self.a_x = control_input[0] * np.cos(self.phi)
+        self.a_y = control_input[0] * np.sin(self.phi)
 
     def step_test(self, u_ax, u_ay):
         self.pos_x += self.v_x * self.dt
