@@ -18,8 +18,8 @@ for _ in range(num_of_surrounding_car):
     car = Car(1)
     car.x_dot = 8
     car.v_x  = 8
-    car.pos_y = random.choice([2,4])
-    car.pos_x = random.randint(15,30)
+    car.pos_y = 2 #random.choice([2,4])
+    car.pos_x = 15 #random.randint(15,30)
     surrounding_car_list.append(car)
 
 # specify ego car state

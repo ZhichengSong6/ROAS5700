@@ -59,9 +59,8 @@ def plotVehAndPath(ego_car, ego_plan_traj, env):
 
 
 def plotTrajectories(ego_car, ego_plan_traj, env, actual_state_log, desired_state_log):
-    actual_state_log = actual_state_log[::10]
-    desired_state_log = desired_state_log[::10]
-    # # trans
+    actual_state_log = actual_state_log
+    desired_state_log = desired_state_log    # # trans
     # current_state = np.array(
     #     [ego_car.pos_x, ego_car.pos_y, ego_car.v_x, ego_car.v_y, ego_car.a_x, ego_car.a_y])
     # params
@@ -99,7 +98,7 @@ def plotTrajectories(ego_car, ego_plan_traj, env, actual_state_log, desired_stat
         obs_state = np.array(
             [obs.pos_x, obs.pos_y, obs.v_x, obs.v_y, obs.a_x, obs.a_y])
         obs_pred_traj = np.concatenate((np.array([obs.traj_x]), np.array([obs.traj_y]))).T
-        obs_pred_traj = obs_pred_traj[::10]
+        obs_pred_traj = obs_pred_traj
         plt.fill(np.array([obs_state[0] - L / 2, obs_state[0] - L / 2, obs_state[0] + L / 2, obs_state[0] + L / 2]),
                  np.array([obs_state[1] - W / 2, obs_state[1] + W / 2, obs_state[1] + W / 2, obs_state[1] - W / 2]),
                  'r')
@@ -127,6 +126,6 @@ def plotTrajectories(ego_car, ego_plan_traj, env, actual_state_log, desired_stat
                         , interval=1
                         , blit=True
                         )
-    # plt.show()
-    ani.save("animation.gif", fps=25, writer="lane_change")
+    plt.show()
+    # ani.save("animation.gif", fps=25, writer="lane_change")
 
