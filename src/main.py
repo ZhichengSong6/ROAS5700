@@ -19,14 +19,14 @@ for _ in range(num_of_surrounding_car):
     car.x_dot = 8
     car.v_x  = 8
     car.pos_y = 2 #random.choice([2,4])
-    car.pos_x = 15 #random.randint(15,30)
+    car.pos_x = 0 #random.randint(15,30)
     surrounding_car_list.append(car)
 
 # specify ego car state
 ego_car = Car(0)
 ego_car.x_dot = 6
 ego_car.v_x  = 6
-ego_car.pos_x = 0
+ego_car.pos_x = 2
 ego_car.pos_y = -4.0/2.0
 
 # initial Env
@@ -128,15 +128,15 @@ while t < kSimTime:
     # print(ego_plan_traj)
     # print(traj_for_control)
     Q = np.eye(6)
-    Q[0][0] = 50
-    Q[1][1] = 50
-    Q[2][2] = 100
-    Q[3][3] = 50
-    Q[4][4] = 5
-    Q[5][5] = 10
+    # Q[0][0] = 50
+    # Q[1][1] = 50
+    # Q[2][2] = 100
+    # Q[3][3] = 50
+    # Q[4][4] = 5
+    # Q[5][5] = 10
     R = np.eye(2)
-    R[0][0] = 8
-    R[1][1] = 5
+    # R[0][0] = 8
+    # R[1][1] = 5
     model = DynamicsModel(20, Q, R, traj_for_control, int((t - last_replan_time)/dt))
 
     # print(traj_for_control[0])

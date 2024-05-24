@@ -64,10 +64,10 @@ class Car:
 
     def updateCenterPos(self):
         for i in range(len(self.traj_x)):
-            self.center1_pos[i][0] = self.traj_x[i] + self.r * math.sin(self.traj_phi[i])
-            self.center2_pos[i][0] = self.traj_x[i] - self.r * math.sin(self.traj_phi[i])
-            self.center1_pos[i][1] = self.traj_y[i] + self.r * math.cos(self.traj_phi[i])
-            self.center2_pos[i][1] = self.traj_y[i] - self.r * math.cos(self.traj_phi[i])
+            self.center1_pos[i][0] = self.traj_x[i] + self.r * math.cos(self.traj_phi[i])
+            self.center2_pos[i][0] = self.traj_x[i] - self.r * math.cos(self.traj_phi[i])
+            self.center1_pos[i][1] = self.traj_y[i] + self.r * math.sin(self.traj_phi[i])
+            self.center2_pos[i][1] = self.traj_y[i] - self.r * math.sin(self.traj_phi[i])
 
 class Lane:
     def __init__(self, num_of_lane, line_width):
@@ -116,8 +116,8 @@ class Env:
         return math.sqrt((point1[0] - point2[0]) ** 2 +(point1[1] - point2[1]) ** 2)
 
     def pointCollisionCheck(self, car1_center1_pos, car2_center1_pos, car1_center2_pos, car2_center2_pos):
-        if self.eulerDistance(car1_center1_pos, car2_center1_pos) <= self.ego_vehicle.r or self.eulerDistance(car1_center1_pos, car2_center2_pos) <= self.ego_vehicle.r or\
-            self.eulerDistance(car1_center2_pos, car2_center1_pos) <= self.ego_vehicle.r or self.eulerDistance(car1_center2_pos, car2_center2_pos) <= self.ego_vehicle.r:
+        if self.eulerDistance(car1_center1_pos, car2_center1_pos) <= (self.ego_vehicle.r + 1) or self.eulerDistance(car1_center1_pos, car2_center2_pos) <= (self.ego_vehicle.r + 1) or\
+            self.eulerDistance(car1_center2_pos, car2_center1_pos) <= (self.ego_vehicle.r + 1) or self.eulerDistance(car1_center2_pos, car2_center2_pos) <= (self.ego_vehicle.r + 1):
             min_dist = min(self.eulerDistance(car1_center1_pos, car2_center1_pos), self.eulerDistance(car1_center1_pos, car2_center2_pos))
             min_dist = min(min_dist, self.eulerDistance(car1_center2_pos, car2_center1_pos))
             min_dist = min(min_dist, self.eulerDistance(car1_center2_pos, car2_center2_pos))

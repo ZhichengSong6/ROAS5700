@@ -36,7 +36,7 @@ class TrajectoryDecision:
         # sample for 20 trajectories for each time
         sample_resolution = 1.0
         kMinDeltaSpeed = -3.0
-        kMaxDeltaSpeed =  5.0
+        kMaxDeltaSpeed =  8.0
         delta_speeds = np.arange(kMinDeltaSpeed, kMaxDeltaSpeed, sample_resolution)
         end_speeds = ego_car_speed + delta_speeds
         for end_speed in end_speeds:
@@ -44,12 +44,12 @@ class TrajectoryDecision:
             end_state = np.array([end_pos_x, lane.line_width / 2, end_speed, 0, 0, 0])
             poly_for_ego_car = Polynomial(lc_time)
             ego_plan_traj = poly_for_ego_car.getTrajectory(current_state, end_state)
-            # poly_for_ego_car.plotPath(ego_plan_traj, current_state, end_state, lane.line_width, 35, car.car_width,
-            #                           car.car_legnth)
+            # poly_for_ego_car.plotPath(ego_plan_traj, current_state, end_state, lane.line_width, 35, ego_car.car_width,
+            #                           ego_car.car_legnth)
             trajectory_samples.append(poly_for_ego_car)
         # dummy_poly = Polynomial(1.0)
-        # dummy_poly.plotAllSamplePath(trajectory_samples, current_state, lane.line_width, 35, car.car_width,
-        #                              car.car_legnth)
+        # dummy_poly.plotAllSamplePath(trajectory_samples, current_state, lane.line_width, 35, ego_car.car_width,
+        #                              ego_car.car_legnth)
         return trajectory_samples
 
     def evaluateSafety(self, env, trajectory):
@@ -60,10 +60,10 @@ class TrajectoryDecision:
         time_stamp = 0
         for state in trajectory.trajectory:
             phi = 0.0 #np.arctan()
-            ego_front_center_x = state[0]#state[0] + env.ego_vehicle.r * math.sin(phi)
-            ego_front_center_y = state[1]#state[1] + env.ego_vehicle.r * math.cos(phi)
-            ego_rear_center_x = state[0]#state[0] - env.ego_vehicle.r * math.sin(phi)
-            ego_rear_center_y = state[1]#state[1] - env.ego_vehicle.r * math.cos(phi)
+            ego_front_center_x = state[0] + env.ego_vehicle.r * np.cos(phi)
+            ego_front_center_y = state[1] + env.ego_vehicle.r * np.sin(phi)
+            ego_rear_center_x = state[0] - env.ego_vehicle.r * np.sin(phi)
+            ego_rear_center_y = state[1] - env.ego_vehicle.r * np.cos(phi)
             ego_front_center = np.array([ego_front_center_x, ego_front_center_y])
             ego_rear_center = np.array([ego_rear_center_x, ego_rear_center_y])
             min_obs_dist = 10000.0
@@ -71,8 +71,8 @@ class TrajectoryDecision:
                 obs_x = obs.traj_x[time_stamp]
                 obs_y = obs.traj_x[time_stamp]
                 # todo:
-                obs_front_center = np.array([obs_x, obs_y])
-                obs_rear_center = np.array([obs_x, obs_y])
+                obs_front_center = np.array([obs_x + obs.r, obs_y])
+                obs_rear_center = np.array([obs_x - obs.r, obs_y])
                 collision, obs_dist = env.pointCollisionCheck(ego_front_center, obs_front_center, ego_rear_center, obs_rear_center)
                 if collision:
                     break
