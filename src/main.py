@@ -177,6 +177,8 @@ plt.legend(['actual traj', 'desired traj'])
 plt.show()
 plotTrajectories(ego_car, None, env, actual_state_log, desired_state_log)
 
+debug = 0.0
+
 
 
 

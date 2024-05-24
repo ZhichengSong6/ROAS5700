@@ -99,6 +99,7 @@ def plotTrajectories(ego_car, ego_plan_traj, env, actual_state_log, desired_stat
         obs_state = np.array(
             [obs.pos_x, obs.pos_y, obs.v_x, obs.v_y, obs.a_x, obs.a_y])
         obs_pred_traj = np.concatenate((np.array([obs.traj_x]), np.array([obs.traj_y]))).T
+        obs_pred_traj = obs_pred_traj[::10]
         plt.fill(np.array([obs_state[0] - L / 2, obs_state[0] - L / 2, obs_state[0] + L / 2, obs_state[0] + L / 2]),
                  np.array([obs_state[1] - W / 2, obs_state[1] + W / 2, obs_state[1] + W / 2, obs_state[1] - W / 2]),
                  'r')
@@ -123,8 +124,9 @@ def plotTrajectories(ego_car, ego_plan_traj, env, actual_state_log, desired_stat
                         , update
                         , init_func=init
                         , frames=frames
-                        , interval=0.01
+                        , interval=1
                         , blit=True
                         )
-    plt.show()
+    # plt.show()
+    ani.save("animation.gif", fps=25, writer="lane_change")
 
