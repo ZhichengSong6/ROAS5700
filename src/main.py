@@ -4,7 +4,8 @@ from environment import Car
 from environment import Lane
 from environment import Env
 import random
-from trajectory_decision import TrajectoryDecision
+from trajectory_decision import TrajectoryDecisionForLaneChanging
+from trajectory_decision import TrajectoryDecisionForOvertaking
 from utils import *
 import math
 from model import DynamicsModel
@@ -16,10 +17,14 @@ num_of_surrounding_car = 1
 surrounding_car_list = []
 for _ in range(num_of_surrounding_car):
     car = Car(1)
-    car.x_dot = 8
-    car.v_x  = 8
-    car.pos_y = 2 #random.choice([2,4])
-    car.pos_x = 0 #random.randint(15,30)
+    car.x_dot = 5
+    car.v_x  = 5
+    # lane changing
+    # car.pos_y = 2 #random.choice([2,4])
+    # car.pos_x = 0 #random.randint(15,30)
+    #overtaking
+    car.pos_y = -2 #random.choice([2,4])
+    car.pos_x = 20 #random.randint(15,30)
     surrounding_car_list.append(car)
 
 # specify ego car state
@@ -33,7 +38,7 @@ ego_car.pos_y = -4.0/2.0
 lane_width = 4.0
 lane_num = 2
 lane = Lane(lane_num, lane_width)
-env = Env(ego_car, surrounding_car_list, lane, 0.1, kSimTime)
+env = Env(ego_car, surrounding_car_list, lane, 0.1, kSimTime+10)
 
 # initialize poly for surrounding car and ego car
 poly_for_surrounding_car_list = []
@@ -87,7 +92,8 @@ planned_trajectory = None
 u = np.array([0, 0])
 u_float = np.array([0, 0])
 
-trajectory_decision = TrajectoryDecision(sampler)
+# trajectory_decision = TrajectoryDecisionForLaneChanging(sampler)
+trajectory_decision = TrajectoryDecisionForOvertaking(sampler)
 
 while t < kSimTime:
     current_state = np.array(
@@ -99,7 +105,7 @@ while t < kSimTime:
     if t == 0.0 or t >= last_replan_time + dt_replan:
         ego_car_temp = ego_car
         last_replan_time = t
-        planned_trajectory = trajectory_decision.trajectoryPlan(env, ego_car_temp)
+        planned_trajectory = trajectory_decision.trajectoryPlan(env, ego_car_temp, int(t/dt))
         ego_plan_traj = planned_trajectory.traj.trajectory
 
     # for i in range(100):
@@ -127,16 +133,19 @@ while t < kSimTime:
     traj_for_control = prepareStateForControl(ego_plan_traj)
     # print(ego_plan_traj)
     # print(traj_for_control)
+
     Q = np.eye(6)
-    # Q[0][0] = 50
-    # Q[1][1] = 50
-    # Q[2][2] = 100
-    # Q[3][3] = 50
-    # Q[4][4] = 5
-    # Q[5][5] = 10
     R = np.eye(2)
-    # R[0][0] = 8
-    # R[1][1] = 5
+    # lane change
+
+    # overtaking
+    Q[0][0] = 5
+    Q[1][1] = 10
+    Q[2][2] = 2
+    Q[3][3] = 4
+    Q[4][4] = 5
+    Q[5][5] = 1
+
     model = DynamicsModel(20, Q, R, traj_for_control, int((t - last_replan_time)/dt))
 
     # print(traj_for_control[0])
@@ -156,6 +165,8 @@ while t < kSimTime:
     # sim
     # ego_car.step_test(u[0], u[1])
     ego_car.step(u_float)
+    for car in surrounding_car_list:
+         car.step_test(0,0)
 
     print("next step")
     print(u_float)

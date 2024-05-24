@@ -51,8 +51,8 @@ class Car:
         self.a_y = control_input[0] * np.sin(self.phi)
 
     def step_test(self, u_ax, u_ay):
-        self.pos_x += self.v_x * self.dt
-        self.pos_y += self.v_y * self.dt
+        self.pos_x += self.x_dot * self.dt
+        self.pos_y += self.y_dot * self.dt
         self.v_x += u_ax * self.dt
         self.v_y += u_ay * self.dt
         # self.phi += self.omega * self.dt
