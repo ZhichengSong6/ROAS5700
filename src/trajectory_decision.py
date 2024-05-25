@@ -276,4 +276,8 @@ class TrajectoryDecisionForOvertaking:
         trajectory_samples = self.trajectorySample(ego_car, env.lane)
         evaluated_trajector_set = self.trajectoryEvaluator(env, trajectory_samples, t_start)
         selected_trajectory = self.trajectorySelector(env, evaluated_trajector_set)
-        return selected_trajectory
+        candidate_trajector_set = []
+        for evaluated_trajector in evaluated_trajector_set:
+            candidate_trajector_set.append(evaluated_trajector.traj.trajectory)
+        candidate_trajector_set = np.array(candidate_trajector_set)
+        return selected_trajectory, candidate_trajector_set

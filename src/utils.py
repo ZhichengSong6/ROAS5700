@@ -132,7 +132,7 @@ def plotVehAndPath(ego_car, ego_plan_traj, env):
 #     plt.show()
 
 
-def plotTrajectories(ego_car, ego_plan_traj, env, actual_state_log, desired_state_log):
+def plotTrajectories(ego_car, all_times_candidate_trajector_set, env, actual_state_log, desired_state_log):
     actual_state_log = actual_state_log
     desired_state_log = desired_state_log
 
@@ -169,6 +169,7 @@ def plotTrajectories(ego_car, ego_plan_traj, env, actual_state_log, desired_stat
     for obs in env.surrounding_vehicle_list:
         obs_state = np.array([obs.pos_x, obs.pos_y, obs.v_x, obs.v_y, obs.a_x, obs.a_y])
         obs_pred_traj = np.concatenate((np.array([obs.traj_x]), np.array([obs.traj_y]))).T
+        # 注释掉初始绘制他车矩形的代码
         # ax.fill(np.array([obs_state[0] - L / 2, obs_state[0] - L / 2, obs_state[0] + L / 2, obs_state[0] + L / 2]),
         #         np.array([obs_state[1] - W / 2, obs_state[1] + W / 2, obs_state[1] + W / 2, obs_state[1] - W / 2]),
         #         'r')
@@ -179,11 +180,17 @@ def plotTrajectories(ego_car, ego_plan_traj, env, actual_state_log, desired_stat
         rect_obs_list.append(rect_obs)
         ax.add_patch(rect_obs)
 
-    plt.legend()
+    # plt.legend()
 
     # Add a rectangle for ego car
     ego_car_rect = Rectangle((0, 0), L, W, color='blue', alpha=0.7)
     ax.add_patch(ego_car_rect)
+
+    # Initialize list for candidate trajectories
+    candidate_lines = []
+    for i in range(all_times_candidate_trajector_set.shape[1]):
+        line, = ax.plot([], [], color=np.random.rand(3, ), alpha=0.5)
+        candidate_lines.append(line)
 
     def init():
         line1.set_data([], [])
@@ -192,8 +199,10 @@ def plotTrajectories(ego_car, ego_plan_traj, env, actual_state_log, desired_stat
             line_obs.set_data([], [])
         for rect_obs in rect_obs_list:
             rect_obs.set_xy((-L / 2, -W / 2))
+        for line in candidate_lines:
+            line.set_data([], [])
         ego_car_rect.set_xy((-L / 2, -W / 2))
-        return line1, line2, ego_car_rect, *map(lambda x: x[0], line_obs_list), *rect_obs_list
+        return line1, line2, ego_car_rect, *map(lambda x: x[0], line_obs_list), *rect_obs_list, *candidate_lines
 
     def update(num):
         begin_idx = max(num - window_size, 0)
@@ -208,11 +217,18 @@ def plotTrajectories(ego_car, ego_plan_traj, env, actual_state_log, desired_stat
         # Update ego car rectangle position and rotation
         ego_car_rect.set_xy((actual_state_log[num, 0] - L / 2, actual_state_log[num, 1] - W / 2))
         ego_car_rect.angle = np.degrees(actual_state_log[num, -1])  # 更新角度
-        return line1, line2, ego_car_rect, *map(lambda x: x[0], line_obs_list), *rect_obs_list
+
+        # Update candidate trajectories
+        for i, line in enumerate(candidate_lines):
+            line.set_data(all_times_candidate_trajector_set[num, i, :, 0],
+                          all_times_candidate_trajector_set[num, i, :, 1])
+
+        return line1, line2, ego_car_rect, *map(lambda x: x[0], line_obs_list), *rect_obs_list, *candidate_lines
 
     frames = desired_state_log.shape[0]
     ani = FuncAnimation(fig, update, init_func=init, frames=frames, interval=50, blit=True)  # interval 增大到 50
     plt.show()
+
 
 # import numpy as np
 # import matplotlib.pyplot as plt

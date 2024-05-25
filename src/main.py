@@ -94,6 +94,8 @@ u_float = np.array([0, 0])
 
 # trajectory_decision = TrajectoryDecisionForLaneChanging(sampler)
 trajectory_decision = TrajectoryDecisionForOvertaking(sampler)
+all_times_candidate_trajector_set = []
+candidate_trajector_set = None
 
 while t < kSimTime:
     current_state = np.array(
@@ -102,11 +104,13 @@ while t < kSimTime:
     # check if need to replan
     print("t: ", t)
     print("generate plan trajectory")
+
     if t == 0.0 or t >= last_replan_time + dt_replan:
         ego_car_temp = ego_car
         last_replan_time = t
-        planned_trajectory = trajectory_decision.trajectoryPlan(env, ego_car_temp, int(t/dt))
+        planned_trajectory, candidate_trajector_set = trajectory_decision.trajectoryPlan(env, ego_car_temp, int(t/dt))
         ego_plan_traj = planned_trajectory.traj.trajectory
+    all_times_candidate_trajector_set.append(candidate_trajector_set)
 
     # for i in range(100):
     #     tail_state = ego_plan_traj[-1]
@@ -179,6 +183,7 @@ while t < kSimTime:
     t += dt
 print("sim over")
 
+all_times_candidate_trajector_set = np.array(all_times_candidate_trajector_set)
 desired_state_log = np.array(desired_state_log)
 actual_state_log = np.array(actual_state_log)
 fig, ax = plt.subplots()
@@ -186,7 +191,7 @@ line1, = ax.plot(actual_state_log[:, 0], actual_state_log[:, 1], '--r')
 line2, = ax.plot(desired_state_log[:, 0], desired_state_log[:, 1], '--b')
 plt.legend(['actual traj', 'desired traj'])
 plt.show()
-plotTrajectories(ego_car, None, env, actual_state_log, desired_state_log)
+plotTrajectories(ego_car, all_times_candidate_trajector_set, env, actual_state_log, desired_state_log)
 
 debug = 0.0
 
