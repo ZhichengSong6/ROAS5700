@@ -8,7 +8,7 @@ import matplotlib.pylab as plt
 import matplotlib.animation as animation
 from matplotlib.animation import FuncAnimation
 from polynomial_trajectory_planner import Polynomial
-from utils import plotVehAndPath
+# from utils import plotVehAndPath
 
 kMaxCost = 1e8
 
