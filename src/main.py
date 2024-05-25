@@ -97,7 +97,7 @@ trajectory_decision = TrajectoryDecisionForOvertaking(sampler)
 
 while t < kSimTime:
     current_state = np.array(
-        [ego_car.pos_x, ego_car.pos_y, ego_car.x_dot, ego_car.y_dot, ego_car.a_x, ego_car.a_y])  # x,y; vx,vy; ax,ay
+        [ego_car.pos_x, ego_car.pos_y, ego_car.x_dot, ego_car.y_dot, ego_car.a_x, ego_car.a_y, ego_car.phi])  # x,y; vx,vy; ax,ay
     ## planner
     # check if need to replan
     print("t: ", t)
