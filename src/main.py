@@ -20,11 +20,11 @@ for _ in range(num_of_surrounding_car):
     car.x_dot = 5
     car.v_x  = 5
     # lane changing
-    # car.pos_y = 2 #random.choice([2,4])
-    # car.pos_x = 0 #random.randint(15,30)
+    car.pos_y = 2 #random.choice([2,4])
+    car.pos_x = 0 #random.randint(15,30)
     #overtaking
-    car.pos_y = -2 #random.choice([2,4])
-    car.pos_x = 20 #random.randint(15,30)
+    # car.pos_y = -2 #random.choice([2,4])
+    # car.pos_x = 20 #random.randint(15,30)
     surrounding_car_list.append(car)
 
 # specify ego car state
@@ -94,8 +94,8 @@ planned_trajectory = None
 u = np.array([0, 0])
 u_float = np.array([0, 0])
 
-# trajectory_decision = TrajectoryDecisionForLaneChanging(sampler)
-trajectory_decision = TrajectoryDecisionForOvertaking(sampler)
+trajectory_decision = TrajectoryDecisionForLaneChanging(sampler)
+# trajectory_decision = TrajectoryDecisionForOvertaking(sampler)
 all_times_candidate_trajector_set = []
 candidate_trajector_set = None
 
@@ -162,7 +162,7 @@ while t < kSimTime:
     # print(traj_for_control)
 
     Q = np.eye(6)
-    R = np.eye(2)
+    R = 50 * np.eye(2)
     # lane change
 
     # overtaking
@@ -222,10 +222,10 @@ plt.ylabel('Y (m)')
 plt.title('Reference Trajectory Tracking')
 plt.show()
 
-fig2, ax2 = plt.subplots()
-ax2.plot(time_log, desired_state_log[:, 2], 'orange')
-ax2.plot(time_log, desired_state_log[:, 3], '--r')
-plt.show()
+# fig2, ax2 = plt.subplots()
+# ax2.plot(time_log, desired_state_log[:, 2], 'orange')
+# ax2.plot(time_log, desired_state_log[:, 3], '--r')
+# plt.show()
 
 fig2, ax2 = plt.subplots()
 ax2.plot(time_log, control_input_log[:, 0], 'orange')
