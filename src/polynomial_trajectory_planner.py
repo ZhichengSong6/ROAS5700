@@ -176,7 +176,7 @@ class Polynomial:
     def plotAllSamplePath(self, path_set, current_state, lane_width, line_length, car_width, car_length):
         # params
         d = lane_width
-        len_line = line_length
+        len_line = line_length + 20
         W = car_width
         L = car_length
 
@@ -190,7 +190,7 @@ class Polynomial:
         plt.fill(GreyZone[:, 0], GreyZone[:, 1], np.array([0.5, 0.5, 0.5]))
 
         # 画小车
-        plt.fill(np.array([current_state[0], current_state[0], current_state[0] + L, current_state[0] + L]),
+        plt.fill(np.array([current_state[0] - L/2, current_state[0] -L/2, current_state[0] + L/2, current_state[0] + L/2]),
                  np.array([current_state[1] - W / 2, current_state[1] + W / 2, current_state[1] + W / 2, current_state[1] - W / 2]), 'b')
         # plt.fill(np.array([end_state[0], end_state[0], end_state[0] - L, end_state[0] - L]),
         #          np.array([ d / 2 - W / 2,  d / 2 + W / 2,  d / 2 + W / 2,  d / 2 - W / 2]), 'y')
@@ -205,6 +205,8 @@ class Polynomial:
         plt.axis('equal')
 
         plt.title("scene")
+        plt.xlabel('X (m)')
+        plt.ylabel('Y (m)')
 
         def get_random_color():
             r = random.random()

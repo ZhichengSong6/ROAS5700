@@ -227,8 +227,8 @@ def plotTrajectories(ego_car, all_times_candidate_trajector_set, env, actual_sta
 
     frames = desired_state_log.shape[0]
     ani = FuncAnimation(fig, update, init_func=init, frames=frames, interval=50, blit=True)  # interval 增大到 50
-    # plt.show()
-    ani.save("overtake.gif")
+    plt.show()
+    ani.save('overtake.gif', dpi=300)
 
 # import numpy as np
 # import matplotlib.pyplot as plt

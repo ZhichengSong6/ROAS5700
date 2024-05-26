@@ -176,7 +176,14 @@ class TrajectoryDecisionForOvertaking:
                 # poly_for_ego_car.plotPath(ego_plan_traj, current_state, end_state, lane.line_width, 35, ego_car.car_width,
                 #                           ego_car.car_legnth)
                 trajectory_samples.append(poly_for_ego_car)
-            # dummy_poly = Polynomial(1.0)
+
+        end_pos_x = self.sampler.computeEndPosition(ego_car.pos_x, ego_car.v_x, ego_car.v_x, lc_time)
+        end_state = np.array([end_pos_x, ego_car.pos_y, ego_car.v_x, 0, 0, 0])
+        poly_for_ego_car = Polynomial(lc_time)
+        ego_plan_traj = poly_for_ego_car.getTrajectory(current_state, end_state)
+        trajectory_samples.append(poly_for_ego_car)
+
+        # dummy_poly = Polynomial(1.0)
         # dummy_poly.plotAllSamplePath(trajectory_samples, current_state, lane.line_width, 35, ego_car.car_width,
         #                              ego_car.car_legnth)
         return trajectory_samples
@@ -184,9 +191,10 @@ class TrajectoryDecisionForOvertaking:
     def evaluateSafety(self, env, trajectory, t_start):
         collision = False
         safey_cost = 0.0
-        k_min_dist = 0.2
+        k_min_dist = 0.5
 
         time_stamp = t_start
+        average_num = 0
         for state in trajectory.trajectory:
             phi = 0.0 #np.arctan()
             ego_front_center_x = state[0] + env.ego_vehicle.r * np.cos(phi)
@@ -196,6 +204,7 @@ class TrajectoryDecisionForOvertaking:
             ego_front_center = np.array([ego_front_center_x, ego_front_center_y])
             ego_rear_center = np.array([ego_rear_center_x, ego_rear_center_y])
             min_obs_dist = 10000.0
+            compute_average = True
             for obs in env.surrounding_vehicle_list:
                 obs_x = obs.traj_x[time_stamp]
                 obs_y = obs.traj_y[time_stamp]
@@ -206,13 +215,17 @@ class TrajectoryDecisionForOvertaking:
                 if collision:
                     break
                 min_obs_dist = min(min_obs_dist, obs_dist)
+                # if state[0] - env.ego_vehicle.car_legnth * 0.5 >= obs.traj_x[time_stamp] + env.ego_vehicle.car_legnth * 0.5:
+                #     compute_average = False
+            # if compute_average:
+            #     average_num += 1
             safey_cost += min(1.0, np.exp(-(min_obs_dist - k_min_dist)))
 
             if collision:
                 safey_cost = kMaxCost
                 break
             time_stamp += 1
-            safey_cost = safey_cost / len(trajectory.trajectory)
+            # safey_cost = safey_cost / max(average_num, 1)
         # print("safey_cost: ", safey_cost)
         return safey_cost
 
@@ -240,8 +253,8 @@ class TrajectoryDecisionForOvertaking:
 
 
     def computeTotalCost(self, evaluated_trajectory):
-        kSafetyCoeff = 0.25
-        kEfficiencyCoeff = 0.7
+        kSafetyCoeff = 0.7
+        kEfficiencyCoeff = 0.25
         kInLaneCoeff = 0.05
         total_cost = (kSafetyCoeff * evaluated_trajectory.safety_cost +
                                            kEfficiencyCoeff * evaluated_trajectory.efficiency_cost + kInLaneCoeff * evaluated_trajectory.inlane_cost)
@@ -268,9 +281,11 @@ class TrajectoryDecisionForOvertaking:
         selected_trajectory = None
         min_cost = kMaxCost
         for evaluated_trajectory in evaluated_trajector_set:
-            if evaluated_trajectory.total_cost < min_cost:
+            if evaluated_trajectory.total_cost < min_cost and evaluated_trajectory.safety_cost < kMaxCost-100:
                 min_cost = evaluated_trajectory.total_cost
                 selected_trajectory = evaluated_trajectory
+        if selected_trajectory is None:
+            selected_trajectory = evaluated_trajector_set[-1]
         print("end_state: ", selected_trajectory.traj.trajectory[-1, 1], ", idx: ", selected_trajectory.id)
         # plotVehAndPath(env.ego_vehicle, selected_trajectory.traj.trajectory, env)
         return selected_trajectory

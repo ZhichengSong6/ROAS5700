@@ -107,31 +107,32 @@ while t < kSimTime:
     print("t: ", t)
     print("generate plan trajectory")
 
-    if t == 0.0 or t >= last_replan_time + dt_replan:
-        ego_car_temp = Car(0)
-        if t == 0.0:
-            ego_car_temp.pos_x = ego_car.pos_x
-            ego_car_temp.pos_y = ego_car.pos_y
-            ego_car_temp.v_x = ego_car.v_x
-            ego_car_temp.v_y = ego_car.v_y
-            ego_car_temp.x_dot = ego_car.x_dot
-            ego_car_temp.y_dot = ego_car.y_dot
-            ego_car_temp.a_x = ego_car.a_x
-            ego_car_temp.a_y = ego_car.a_y
-        elif t >= last_replan_time + dt_replan:
-            last_desired_state = ego_plan_traj[int((t - last_replan_time) / dt)]
-            ego_car_temp.pos_x = last_desired_state[0]
-            ego_car_temp.pos_y = last_desired_state[1]
-            ego_car_temp.v_x = last_desired_state[2]
-            ego_car_temp.v_y = last_desired_state[3]
-            ego_car_temp.x_dot = last_desired_state[2]
-            ego_car_temp.y_dot = last_desired_state[3]
-            ego_car_temp.a_x = 0.0
-            ego_car_temp.a_y = 0.0
+    # if t == 0.0 or t >= last_replan_time + dt_replan:
+    # ego_car_temp = Car(0)
+    # if t == 0.0:
+    #     ego_car_temp.pos_x = ego_car.pos_x
+    #     ego_car_temp.pos_y = ego_car.pos_y
+    #     ego_car_temp.v_x = ego_car.v_x
+    #     ego_car_temp.v_y = ego_car.v_y
+    #     ego_car_temp.x_dot = ego_car.x_dot
+    #     ego_car_temp.y_dot = ego_car.y_dot
+    #     ego_car_temp.a_x = ego_car.a_x
+    #     ego_car_temp.a_y = ego_car.a_y
+    # elif t >= last_replan_time + dt_replan:
+    #     last_desired_state = ego_plan_traj[int((t - last_replan_time) / dt)]
+    #     ego_car_temp.pos_x = last_desired_state[0]
+    #     ego_car_temp.pos_y = last_desired_state[1]
+    #     ego_car_temp.v_x = last_desired_state[2]
+    #     ego_car_temp.v_y = last_desired_state[3]
+    #     ego_car_temp.x_dot = last_desired_state[2]
+    #     ego_car_temp.y_dot = last_desired_state[3]
+    #     ego_car_temp.a_x = 0.0
+    #     ego_car_temp.a_y = 0.0
+    ego_car_temp = ego_car
 
-        last_replan_time = t
-        planned_trajectory, candidate_trajector_set = trajectory_decision.trajectoryPlan(env, ego_car_temp, int(t/dt))
-        ego_plan_traj = planned_trajectory.traj.trajectory
+    last_replan_time = t
+    planned_trajectory, candidate_trajector_set = trajectory_decision.trajectoryPlan(env, ego_car_temp, int(t/dt))
+    ego_plan_traj = planned_trajectory.traj.trajectory
     all_times_candidate_trajector_set.append(candidate_trajector_set)
 
     # for i in range(100):
@@ -165,14 +166,14 @@ while t < kSimTime:
     # lane change
 
     # overtaking
-    Q[0][0] = 5
+    Q[0][0] = 10
     Q[1][1] = 10
     Q[2][2] = 2
     Q[3][3] = 4
     Q[4][4] = 5
     Q[5][5] = 1
-
-    model = DynamicsModel(20, Q, R, traj_for_control, int((t - last_replan_time)/dt))
+    print("t: ", int((t - last_replan_time)/dt))
+    model = DynamicsModel(20, Q, R, traj_for_control, int((t - last_replan_time)/dt) + 1)
 
     # print(traj_for_control[0])
     feedback_state = [ego_car.pos_x, ego_car.pos_y, ego_car.phi, ego_car.x_dot, ego_car.y_dot, ego_car.omega]
@@ -219,6 +220,11 @@ plt.legend(['actual traj', 'desired traj'])
 plt.xlabel('X (m)')
 plt.ylabel('Y (m)')
 plt.title('Reference Trajectory Tracking')
+plt.show()
+
+fig2, ax2 = plt.subplots()
+ax2.plot(time_log, desired_state_log[:, 2], 'orange')
+ax2.plot(time_log, desired_state_log[:, 3], '--r')
 plt.show()
 
 fig2, ax2 = plt.subplots()
