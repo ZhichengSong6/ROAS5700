@@ -104,8 +104,8 @@ class TrajectoryDecisionForLaneChanging:
         return efficiency_cost
 
     def computeTotalCost(self, evaluated_trajectory):
-        kSafetyCoeff = 0.8
-        kEfficiencyCoeff = 0.2
+        kSafetyCoeff = 0.9
+        kEfficiencyCoeff = 0.1
         total_cost = (kSafetyCoeff * evaluated_trajectory.safety_cost +
                                            kEfficiencyCoeff * evaluated_trajectory.efficiency_cost)
         return total_cost

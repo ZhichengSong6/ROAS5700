@@ -19,12 +19,12 @@ for _ in range(num_of_surrounding_car):
     car = Car(1)
     car.x_dot = 5
     car.v_x  = 5
-    # lane changing
-    car.pos_y = 2 #random.choice([2,4])
-    car.pos_x = 0 #random.randint(15,30)
+    # # lane changing
+    # car.pos_y = 2 #random.choice([2,4])
+    # car.pos_x = 0 #random.randint(15,30)
     #overtaking
-    # car.pos_y = -2 #random.choice([2,4])
-    # car.pos_x = 20 #random.randint(15,30)
+    car.pos_y = -2 #random.choice([2,4])
+    car.pos_x = 20 #random.randint(15,30)
     surrounding_car_list.append(car)
 
 # specify ego car state
@@ -94,8 +94,8 @@ planned_trajectory = None
 u = np.array([0, 0])
 u_float = np.array([0, 0])
 
-trajectory_decision = TrajectoryDecisionForLaneChanging(sampler)
-# trajectory_decision = TrajectoryDecisionForOvertaking(sampler)
+# trajectory_decision = TrajectoryDecisionForLaneChanging(sampler)
+trajectory_decision = TrajectoryDecisionForOvertaking(sampler)
 all_times_candidate_trajector_set = []
 candidate_trajector_set = None
 
@@ -161,19 +161,28 @@ while t < kSimTime:
     # print(ego_plan_traj)
     # print(traj_for_control)
 
-    Q = np.eye(6)
-    R = 50 * np.eye(2)
-    # lane change
-
     # overtaking
-    Q[0][0] = 10
+    Q = np.eye(6)
+    R = np.eye(2)
+    Q[0][0] = 5
     Q[1][1] = 10
     Q[2][2] = 2
     Q[3][3] = 4
     Q[4][4] = 5
     Q[5][5] = 1
+
+    # # lane change
+    # Q = np.eye(6)
+    # R = 10 * np.eye(2)
+    # R[0, 0] = 50
+    # Q[0][0] = 5
+    # Q[1][1] = 30
+    # Q[2][2] = 2
+    # Q[3][3] = 10
+    # Q[4][4] = 10
+    # Q[5][5] = 1
     print("t: ", int((t - last_replan_time)/dt))
-    model = DynamicsModel(20, Q, R, traj_for_control, int((t - last_replan_time)/dt) + 1)
+    model = DynamicsModel(20, Q, R, traj_for_control, int((t - last_replan_time)/dt) + 3)
 
     # print(traj_for_control[0])
     feedback_state = [ego_car.pos_x, ego_car.pos_y, ego_car.phi, ego_car.x_dot, ego_car.y_dot, ego_car.omega]
@@ -214,8 +223,8 @@ actual_state_log = np.array(actual_state_log)
 control_input_log = np.array(control_input_log)
 time_log = np.array(time_log)
 fig, ax = plt.subplots()
+line2, = ax.plot(desired_state_log[:, 0], desired_state_log[:, 1], '-b')
 line1, = ax.plot(actual_state_log[:, 0], actual_state_log[:, 1], '--r')
-line2, = ax.plot(desired_state_log[:, 0], desired_state_log[:, 1], '--b')
 plt.legend(['actual traj', 'desired traj'])
 plt.xlabel('X (m)')
 plt.ylabel('Y (m)')
