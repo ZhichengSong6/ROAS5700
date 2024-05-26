@@ -142,7 +142,11 @@ class TrajectoryDecisionForLaneChanging:
         trajectory_samples = self.trajectorySample(ego_car, env.lane)
         evaluated_trajector_set = self.trajectoryEvaluator(env, trajectory_samples, t_start)
         selected_trajectory = self.trajectorySelector(env, evaluated_trajector_set)
-        return selected_trajectory
+        candidate_trajector_set = []
+        for evaluated_trajector in evaluated_trajector_set:
+            candidate_trajector_set.append(evaluated_trajector.traj.trajectory)
+        candidate_trajector_set = np.array(candidate_trajector_set)
+        return selected_trajectory, candidate_trajector_set
     
 
 class TrajectoryDecisionForOvertaking:
@@ -236,9 +240,9 @@ class TrajectoryDecisionForOvertaking:
 
 
     def computeTotalCost(self, evaluated_trajectory):
-        kSafetyCoeff = 0.7
-        kEfficiencyCoeff = 0.1
-        kInLaneCoeff = 0.2
+        kSafetyCoeff = 0.25
+        kEfficiencyCoeff = 0.7
+        kInLaneCoeff = 0.05
         total_cost = (kSafetyCoeff * evaluated_trajectory.safety_cost +
                                            kEfficiencyCoeff * evaluated_trajectory.efficiency_cost + kInLaneCoeff * evaluated_trajectory.inlane_cost)
         return total_cost

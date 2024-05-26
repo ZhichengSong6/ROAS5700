@@ -81,6 +81,8 @@ def pid_feedback_control(current_state, desired_state):
 planed_trajectory_log = []
 desired_state_log = []
 actual_state_log = []
+control_input_log = []
+time_log = []
 
 # init
 t = 0.0
@@ -106,7 +108,27 @@ while t < kSimTime:
     print("generate plan trajectory")
 
     if t == 0.0 or t >= last_replan_time + dt_replan:
-        ego_car_temp = ego_car
+        ego_car_temp = Car(0)
+        if t == 0.0:
+            ego_car_temp.pos_x = ego_car.pos_x
+            ego_car_temp.pos_y = ego_car.pos_y
+            ego_car_temp.v_x = ego_car.v_x
+            ego_car_temp.v_y = ego_car.v_y
+            ego_car_temp.x_dot = ego_car.x_dot
+            ego_car_temp.y_dot = ego_car.y_dot
+            ego_car_temp.a_x = ego_car.a_x
+            ego_car_temp.a_y = ego_car.a_y
+        elif t >= last_replan_time + dt_replan:
+            last_desired_state = ego_plan_traj[int((t - last_replan_time) / dt)]
+            ego_car_temp.pos_x = last_desired_state[0]
+            ego_car_temp.pos_y = last_desired_state[1]
+            ego_car_temp.v_x = last_desired_state[2]
+            ego_car_temp.v_y = last_desired_state[3]
+            ego_car_temp.x_dot = last_desired_state[2]
+            ego_car_temp.y_dot = last_desired_state[3]
+            ego_car_temp.a_x = 0.0
+            ego_car_temp.a_y = 0.0
+
         last_replan_time = t
         planned_trajectory, candidate_trajector_set = trajectory_decision.trajectoryPlan(env, ego_car_temp, int(t/dt))
         ego_plan_traj = planned_trajectory.traj.trajectory
@@ -163,6 +185,8 @@ while t < kSimTime:
     print(ego_car.phi)
     print(ego_car.v_x, ego_car.v_y)
     print(ego_car.omega)
+    control_input_log.append(u_float)
+    time_log.append(t)
     # print('u_float',type(u_float[0]),type(u_float[1]))
 
 
@@ -186,11 +210,35 @@ print("sim over")
 all_times_candidate_trajector_set = np.array(all_times_candidate_trajector_set)
 desired_state_log = np.array(desired_state_log)
 actual_state_log = np.array(actual_state_log)
+control_input_log = np.array(control_input_log)
+time_log = np.array(time_log)
 fig, ax = plt.subplots()
 line1, = ax.plot(actual_state_log[:, 0], actual_state_log[:, 1], '--r')
 line2, = ax.plot(desired_state_log[:, 0], desired_state_log[:, 1], '--b')
 plt.legend(['actual traj', 'desired traj'])
+plt.xlabel('X (m)')
+plt.ylabel('Y (m)')
+plt.title('Reference Trajectory Tracking')
 plt.show()
+
+fig2, ax2 = plt.subplots()
+ax2.plot(time_log, control_input_log[:, 0], 'orange')
+ax2.plot(time_log, time_log * 0.0 + 1.5, '--r')
+ax2.plot(time_log, time_log * 0.0 - 3.0, '--r')
+plt.xlabel('time (s)')
+plt.ylabel('accelaration (m/s*s)')
+plt.title('Control Input of Accelaration')
+plt.show()
+
+fig3, ax3 = plt.subplots()
+ax3.plot(time_log, control_input_log[:, 1], 'orange')
+ax3.plot(time_log, time_log * 0.0 - 0.6, '--r')
+ax3.plot(time_log, time_log * 0.0 + 0.6, '--r')
+plt.xlabel('time (s)')
+plt.ylabel('steering angle (rad/s)')
+plt.title('Control Input of Steering Angle')
+plt.show()
+
 plotTrajectories(ego_car, all_times_candidate_trajector_set, env, actual_state_log, desired_state_log)
 
 debug = 0.0
